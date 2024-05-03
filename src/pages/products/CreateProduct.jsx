@@ -4,8 +4,10 @@
  * Analisis y Desarrollo de Software
  * Año 2024
  */
-
+import {useState } from 'react'
 import BackButton from './BackButton';
+
+
 
 // view that has a form where I can create products
 // and add their information to data base

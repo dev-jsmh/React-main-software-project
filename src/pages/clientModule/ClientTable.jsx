@@ -5,13 +5,29 @@
  * Año 2024
  */
 
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+
+// enviroment 
+import env from '../../env';
 
 // This is the home view of the module that 
 //takes care of managing client's información
 
 
 function ClientTable() {
+
+
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+
+        axios.get(env.mainUrl + "/clients")
+            .then(response => setClients(response.data))
+            .catch(errors => console.log(errors));
+        console.log(clients);
+    }, []);
 
     // route definition for cliente module goes here
     return (
@@ -25,10 +41,10 @@ function ClientTable() {
 
                 { /** <!-- busquedad por otros parametros --> */}
                 <div class="col-12 col-md-5 d-flex mb-2">
-                  
+
                     <input class="form-control" type="text" id="search" placeholder="Nombre, Barrio, Apellido" />
                     <button class="btn btn-success mx-2" type="submit"><i class="bi bi-search"></i></button>
-                    </div>
+                </div>
             </div>
 
             <h1 class="mb-3 text-center">Clientes</h1>
@@ -57,6 +73,26 @@ function ClientTable() {
                                     <Link className='btn btn-info' to="1/details" ><i class="bi bi-eye"></i></Link>
                                 </td>
                             </tr>
+
+                            {
+                                // iterate all the array of clients get from the api call 
+                                clients.map(
+                                    // return a tr element for each client of the 
+                                    //array and print its corresponding data need for the table
+                                    client => (
+                                        <tr key={client.id}>
+                                            <th scope='row' >{client.id}</th>
+                                            <td>{client.first_name}</td>
+                                            <td>{client.first_lastname}</td>
+                                            <td>{client.neighborhood.name}</td>
+                                            <td>
+                                                <Link className='btn btn-info' to={client.id + "/details"} ><i class="bi bi-eye"></i></Link>
+                                            </td>
+                                        </tr>
+
+                                    )
+                                )
+                            }
 
                         </tbody>
                     </table>
