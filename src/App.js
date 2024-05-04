@@ -30,7 +30,6 @@ function App() {
         <Route index element={<Home />} ></Route>
 
         <Route path='clients' element={<ClientsHome />} >
-         
           <Route index element={<ClientTable/>}/>
           <Route path='create' element={<CreateClient />}></Route>
           <Route path=':id/modify' element={<ModifyClient />}></Route>

@@ -39,7 +39,7 @@ function DetailsClient() {
                 console.log(error);
                 setError(error);
             });
-    });
+    }, []);
     // ========================== Html code of the view ========================
     return (
         <>
@@ -75,10 +75,10 @@ function DetailsClient() {
                                 Barrio: {client.neighborhood?.name}
                             </div>
                             <div className="mb-3">
-                                Fecha proximo mantenimiento: {client.last_meet}
+                                Fecha ultimo mantenimiento: {client.last_maintenance}
                             </div>
                             <div className="mb-3">
-                                Fecha ultimo mantenimiento: {client.last_meet}
+                                Fecha proximo mantenimiento: {client.next_maintenance}
                             </div>
                             {/** accion buttons */}
                             <div className="mb-3">

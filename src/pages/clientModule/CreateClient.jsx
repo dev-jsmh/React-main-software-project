@@ -22,19 +22,16 @@ import ClientModel from '../../models/ClientModel';
 function CreateClient() {
 
     // defining an object with all the required data 
-
     const [formData, setFormData] = useState(
         {
-            id: "",
             dni: "",
             first_name: "",
             secund_name: "",
-            first_last_name: "",
-            secund_last_name: "",
+            first_lastname: "",
+            secund_lastname: "",
             phone: "",
             address: "",
-            neighborhood: "",
-
+            neighborhood: ""
         }
     );
 
@@ -52,7 +49,6 @@ function CreateClient() {
             .catch(error => { console.log(error) });
 
     }, []);
-
 
     // function to handle change event of inputs 
     const handleInput = (event) => { // pass the event generated when input changes as argument
@@ -76,15 +72,11 @@ function CreateClient() {
         // create other object with error messages
         const foundErros = {};
 
-        if (formData == null) {
-
-            foundErros.emptyFormInput = "The form could not be submit as there is no client data";
-        };
         if (formData.first_name === "") {
             foundErros.first_name = "The first name is mandatory";
         };
-        if (formData.first_last_name === "") {
-            foundErros.first_last_name = "The first last name is mandatory";
+        if (formData.first_lastname === "") {
+            foundErros.first_lastname = "The first last name is mandatory";
         };
         if (formData.phone === "") {
             foundErros.phone = "The phone is mandatory";
@@ -93,23 +85,36 @@ function CreateClient() {
             foundErros.address = "The address is mandatory";
         };
 
-        if (formData.neighborhood === "---") {
+        if (formData.neighborhood === "") {
             foundErros.neighborhood = "You must to select a neighborhood";
-        }
+        };
+
+
+        if (formData == null) {
+            foundErros.emptyFormInput = "The form could not be submit as there is no client data";
+        };
 
         setErrors(foundErros);
+        // count the number of error found in the foundErrors object
+        return Object.keys(foundErros).length === 0;
 
-        return Object.keys(foundErros) === 0;
     };
 
     // function that executes some logic to handle the from data when submit event is triger
     const handleForm = (ev) => {
         // prevent default behaveour of the form 
         ev.preventDefault();
-        //console.log(ev.target);
-        console.log(formData);
+
         // call function to validate client
-        validateForm(formData);
+        const isValid = validateForm(formData);
+
+        if (isValid) {
+            console.log(isValid);
+            console.log(formData);
+        } else {
+            console.warn("there are some missing data in the form !")
+            console.warn(errors);
+        }
     };
 
     return (
@@ -128,6 +133,7 @@ function CreateClient() {
                                 id="id_card"
                                 name='id_card'
                                 type="number"
+                                value={formData.dni}
                                 onChange={(e) => { handleInput(e) }} />
                         </div>
                         <div className="mb-3">
@@ -137,6 +143,7 @@ function CreateClient() {
                                 id="first_name"
                                 name='first_name'
                                 type="text"
+                                value={formData.first_name}
                                 onChange={(e) => { handleInput(e) }} />
                             {errors.first_name && (<p style={{ color: "red" }} > {errors.first_name}</p>)}
                         </div>
@@ -147,27 +154,29 @@ function CreateClient() {
                                 id="secund_name"
                                 name='secund_name'
                                 type="text"
+                                value={formData.secund_name}
                                 onChange={(e) => { handleInput(e) }} />
 
                         </div>
                         <div className="mb-3">
-                            <label className="form-label" for="first_last_name">Primer apellido</label>
+                            <label className="form-label" for="first_lastname">Primer apellido</label>
                             <input
                                 className="form-control"
-                                id="first_last_name"
-                                name='first_last_name'
+                                id="first_lastname"
+                                name='first_lastname'
                                 type="text"
                                 onChange={(e) => { handleInput(e) }} />
-                            {errors.first_last_name && (<p style={{ color: "red" }} > {errors.first_last_name}</p>)}
+                            {errors.first_lastname && (<p style={{ color: "red" }} > {errors.first_lastname}</p>)}
 
                         </div>
                         <div className="mb-3">
-                            <label className="form-label" for="secund_last_name">Segundo apellido</label>
+                            <label className="form-label" for="secund_lastname">Segundo apellido</label>
                             <input
                                 className="form-control"
-                                id="secund_last_name"
-                                name='secund_last_name'
+                                id="secund_lastname"
+                                name='secund_lastname'
                                 type="text"
+                                value={formData.secund_lastname}
                                 onChange={(e) => { handleInput(e) }} />
                         </div>
                     </div>
@@ -179,6 +188,7 @@ function CreateClient() {
                                 id="phone"
                                 name='phone'
                                 type="number"
+                                value={formData.phone}
                                 onChange={(e) => { handleInput(e) }} />
                             {errors.phone && (<p style={{ color: "red" }} > {errors.phone}</p>)}
 
@@ -190,6 +200,7 @@ function CreateClient() {
                                 id="address"
                                 name='address'
                                 type="text"
+                                value={formData.address}
                                 onChange={(e) => { handleInput(e) }} />
                             {errors.address && (<p style={{ color: "red" }} > {errors.address}</p>)}
 
@@ -200,8 +211,9 @@ function CreateClient() {
                                 className="form-select"
                                 id="neighborhood"
                                 name='neighborhood'
+                                value={formData.neighborhood}
                                 onChange={(e) => handleInput(e)}>
-                                <option value="---">---</option>
+                                <option >---</option>
                                 {
                                     // iterate the neighborhood array and return a option element for each neighborhood
                                     neighborhoods.map(neighborhood => (
@@ -209,9 +221,12 @@ function CreateClient() {
                                     ))
 
                                 }
+                                {/** some example neighborhoods */}
+                                <option value={"Caracoles"} >Caracoles</option>
+                                <option value={"Central"} >La Central</option>
 
                             </select>
-                            {errors.neighborhood && (<p style={{ color: "red" }} >errors.neighborhood</p>)}
+                            {errors.neighborhood && (<p style={{ color: "red" }} > {errors.neighborhood}</p>)}
                         </div>
 
                     </div>

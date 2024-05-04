@@ -8,7 +8,7 @@
 
 // A class that represents a neighborhood containing  basic information
 export default class NeighborhoodModel {
-    id!: Number;
-    name!: String;
+    id;
+    name;
 
 }
