@@ -5,14 +5,12 @@
  * Año 2024
  */
 
-import { useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import env from '../../env';
 import ClientModel from "../../models/ClientModel";
-import ServiceModel from '../../models/ServiceModel';
-import ProductModel from '../../models/ProductModel';
 
 // View where I can fetch a client and check all it's 
 // información by its id
@@ -22,7 +20,7 @@ function DetailsClient() {
     // state variables 
     const [client, setClient] = useState(new ClientModel());
     const [error, setError] = useState({});
-
+    const navigate = useNavigate();
     // take the client id from url 
     const { id } = useParams();
     // make call to clients endpoint and search a specific client by its id
@@ -40,11 +38,34 @@ function DetailsClient() {
                 setError(error);
             });
     }, []);
+
+
+    // ===================== Delete client  =====================
+
+    function deleteClient(client_id) {
+
+        axios.delete(env.mainUrl + "/clients/" + client_id)
+            .then(res => {
+                console.info("client with id: " + client_id + " was successfully deleted !")
+                // redirect to clients table view
+                navigate("/clients");
+
+            })
+            .catch(error => {
+                console.error("Was not possible to delete client id: " + client_id + " beacuse... ", error);
+                setError((prevState) => { return { ...prevState, delete: error.message } })
+            })
+    }
+
     // ========================== Html code of the view ========================
     return (
         <>
-
-            {error && (<p style={{ color: "red" }} >{error.message}</p>)}
+            <BackButton />
+            {error.delete && (<p style={{ color: "red" }}>{error.delete}: !El cliente selecionado ha sido eliminado anteriormente !</p>)}
+            {error.message && (<div style={{ color: "red" }} >
+                <p>{error.message}</p>
+                <p>El servidor no esta disponible en este momento. Porfavor intente mas tarde.</p>
+            </div>)}
             {/** <!-- informacion del cliente--> */}
             <div className="row  my-4 border">
                 <h3 className="text-center">Detalles del cliente</h3>
@@ -57,7 +78,7 @@ function DetailsClient() {
                     <div className="col-12 col-md-9 px-2 mb-3">
                         <div className="row">
                             <div className="mb-3">
-                                id: {client.id} {id}
+                                id: {id}
                             </div>
                             <div className="mb-1">
                                 <p>
@@ -82,12 +103,20 @@ function DetailsClient() {
                             </div>
                             {/** accion buttons */}
                             <div className="mb-3">
-                                <button className="btn btn-danger m-1" >
+                                <button className="btn btn-danger m-1"
+                                    onClick={
+                                        /** use and arrow function inside the click event handlesr to 
+                                         * avoid executing the delete request when rendering the component*/
+                                        () => {
+                                            deleteClient(id)
+                                        }}>
                                     <i className="bi bi-trash"></i>
                                 </button>
-                                <button className="btn btn-warning m-1">
-                                    <i className=" bi bi-pencil"></i>
-                                </button>
+                                <Link
+                                    className="btn btn-warning m-1"
+                                    to={"/clients/" + id + "/modify"}>
+                                    <i className="bi bi-pencil"></i>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -164,6 +193,25 @@ function DetailsClient() {
 
                     </div >
 
+                </div>
+            </div>
+
+            {/** modal window to confirm creation of new client */}
+            <div className="modal" id="modalConfirmModifyClient">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-body">
+                            <p>¿ Desea Modificar los datos de este cliente ?</p>
+                        </div>
+                        <div className="modal-footer">
+                            <Link className='btn btn-secundary'>si</Link>
+                            <button
+                                className='btn btn-primary'
+                                type="button"
+                                data-bs-dismiss="modal">NO</button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </>

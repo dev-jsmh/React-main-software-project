@@ -11,22 +11,34 @@ import { Link } from 'react-router-dom';
 
 // enviroment 
 import env from '../../env';
+import Spinner from '../../components/spinner';
 
 // This is the home view of the module that 
 //takes care of managing client's información
 
 
 function ClientTable() {
-
-
+    const [error, setError] = useState({})
+    const [loadingClients, setLoadingClients] = useState(true);
     const [clients, setClients] = useState([]);
 
     useEffect(() => {
 
         axios.get(env.mainUrl + "/clients")
-            .then(response => setClients(response.data))
-            .catch(errors => console.log(errors));
-        console.log(clients);
+            .then(response => {
+                setClients(response.data);
+                // change variable value to false  when program has finished loading clients from the api
+                setLoadingClients(false)
+            })
+            .catch(errors => {
+                console.log(errors);
+                // set error object a new message if client could have not been charged
+                setError(errors);
+                // change variable value to false  when program has finished loading clients from the api
+                setLoadingClients(false)
+            });
+
+
     }, []);
 
     // route definition for cliente module goes here
@@ -74,8 +86,7 @@ function ClientTable() {
                                 </td>
                             </tr>
 
-                            {
-                                // iterate all the array of clients get from the api call 
+                            {     // iterate all the array of clients get from the api call 
                                 clients.map(
                                     // return a tr element for each client of the 
                                     //array and print its corresponding data need for the table
@@ -84,7 +95,7 @@ function ClientTable() {
                                             <th scope='row' >{client.id}</th>
                                             <td>{client.first_name}</td>
                                             <td>{client.first_lastname}</td>
-                                            <td>{client.neighborhood.name}</td>
+                                            <td>{client.neighborhood?.name}</td>
                                             <td>
                                                 <Link className='btn btn-info' to={client.id + "/details"} ><i class="bi bi-eye"></i></Link>
                                             </td>
@@ -96,7 +107,12 @@ function ClientTable() {
 
                         </tbody>
                     </table>
+                    {// checke if there exist clients in the list
+                    loadingClients &&   <Spinner />}
+                    { /** show Net Work error  */
 
+                        error.message && (<p className='text-center' style={{ color: "red", fontSize: "24px" }}> {error.name} || {error.code} || {error.message}</p>)
+                    }
                 </div>
             </div>
         </>

@@ -6,32 +6,19 @@
  */
 import env from '../../env';
 import axios from 'axios';
-import { useState, onChange, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import BackButton from "./BackButton";
 import ClientModel from '../../models/ClientModel';
-import NeighborhoodModel from '../../models/NeighborhoodModel'
-
+import Spinner from '../../components/spinner';
 
 // view that has a form where I can modify  
 // information of a specifique client by its id
 
 function ModifyClient() {
 
-    const [formData, setFormData] = useState(
-        {
-            id: "",
-            dni: "",
-            first_name: "",
-            secund_name: "",
-            first_lastname: "",
-            secund_lastname: "",
-            phone: "",
-            address: "",
-            neighborhood: {},
-
-        }
-    );
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
     const [client, setClient] = useState(new ClientModel());
     // implement useState to create a object that will contain error messages for each input field
     const [errors, setErrors] = useState({});
@@ -73,6 +60,29 @@ function ModifyClient() {
             });
     }, []);
 
+    // ======= make put request to clients/:id/ endpoint and modify previous client data for more recent one =======
+    function putClient(data, id) {
+        setLoading(true);
+        axios.put( env.mainUrl + "/clients/" + id , data)
+            .then(res => {
+                console.log(res.data);
+                setTimeout(() => {
+                    setLoading(false);
+                    navigate("/clients");
+                }, 4000)
+            })
+            .catch(error => {
+                console.log("Modifying client data proces was not successfully finished!", error);
+                setTimeout(() => {
+                    setLoading(false);
+                }, 4000);
+
+                setErrors(prevState => {
+                    return { ...prevState, api: error }
+                });
+            })
+    };
+
     // function to handle change event of inputs 
     const handleInput = (event) => { // pass the event generated when input changes as an argument
         //desctructor here the event for accessing the name and  values of it
@@ -96,10 +106,10 @@ function ModifyClient() {
         // create other object with error messages
         const foundErros = {};
 
-        if (client.first_name === "" || client.first_name === undefined ) {
+        if (client.first_name === "" || client.first_name === undefined) {
             foundErros.first_name = "The first name is mandatory";
         };
-        if (client.first_lastname === "" || client.first_lastname === undefined ) {
+        if (client.first_lastname === "" || client.first_lastname === undefined) {
             foundErros.first_lastname = "The first last name is mandatory";
         };
         if (client.phone === "" || client.phone === undefined) {
@@ -112,14 +122,16 @@ function ModifyClient() {
         if (client.neighborhood?.id === "" || client.neighborhood === undefined) {
             foundErros.address = "The address is mandatory";
         };
-
+        // take the error that have been found in the form and 
+        // store them in the errors object 
         setErrors(foundErros);
-
+        // validates if the number of errors in the object is equal to cero 
+        // and return the result either it is true or false
         return Object.keys(foundErros).length === 0;
     };
 
 
-    // validate essencial fields 
+    // ======================= handle form  information =======================
     function handleForm(ev) {
         ev.preventDefault();
         // create a new cliente instance and set the values from the 
@@ -130,7 +142,9 @@ function ModifyClient() {
 
         if (isValid) {
             console.log(client);
-
+            // call the postClient function to send data to back-end
+            putClient(client, id);
+            console.info("! Put request made successfully !")
         } else {
             console.warn("There are some missing data !");
             console.warn(errors);
@@ -143,7 +157,14 @@ function ModifyClient() {
             <BackButton />
             <h3 className="mt-3" >Modificar información del cliente</h3>
 
+            {/** /** show a custome message when there is an error with the API */}
+            {errors.api?.code && (
+                <div style={{ color: "red" }}>
+                    <p>{errors.api?.code} Error de conección con la API</p>
+                    <p>El servidor no esta disponible en este momento. Intente luego nuevamente.</p>
 
+                </div>
+            )}
             { /** execute a function to handle the form when submit event is generate */}
             <form onSubmit={(ev) => { handleForm(ev) }} className="form-group mb-3">
                 <div className="row">
@@ -262,7 +283,9 @@ function ModifyClient() {
                     </div>
                 </div>
                 <div className="mb-3 text-center">
-                    <button className="btn btn-success mx-1" type="submit" >Añadir</button>
+                    <button className="btn btn-success mx-1" type="submit" >
+                        {loading ? <Spinner/> : "Añadir"}
+                        </button>
                     <Link className="btn btn-danger mx-1" to="/clients" >Cancelar</Link>
                 </div>
             </form>

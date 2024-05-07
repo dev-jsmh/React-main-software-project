@@ -11,6 +11,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 // ================ Bootstrap CSS ================
 import './assets/css/bootstrap.min.css';
+import './assets/js/bootstrap.bundle.min.js';
 import './assets/icons/font/bootstrap-icons.min.css';
 
 // ================ components imports ================
@@ -23,6 +24,8 @@ import ModifyClient from './pages/clientModule/ModifyClient';
 import NotFound from './pages/NotFound';
 
 function App() {
+  // remove modal styles setted by the open modal funcion in case they still existe 
+  
   return (
 
     <BrowserRouter>

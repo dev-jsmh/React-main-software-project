@@ -5,21 +5,43 @@
  * Año 2024
  */
 
-import { onChange, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 // import axios to make http request to the API
 import axios from 'axios';
 import BackButton from './BackButton';
 
 // enviroment file 
 import env from '../../env';
+import Spinner from '../../components/spinner';
 
-import ClientModel from '../../models/ClientModel';
+// other imports here ================================
+
 // view that has a form where I can create clients 
 // and add their information to data base
-
-
 function CreateClient() {
+
+    // function that opens manually a bootstrap modal window
+    // takes as argument the name of the modal 
+    // The variable "element" is a string type variable
+    /* function openModal(element) {
+ 
+         document.body.style.cssText += "overflow: hidden; padding-right: 18px; ";
+         document.body.classList.add("modal-open");  // this is a css class fro bootstrap
+         var modal = document.getElementById(element);
+         modal.style.display = "block";
+     };
+ 
+     function modalClose(element) {
+ 
+         document.body.style.overflow = "visible";
+         document.body.style.paddingRight = "0px";
+         document.body.classList.remove("modal-open");  // this is a css class fro bootstrap
+         // selecting modal by its correspondign id numbers
+         var modal = document.getElementById(element);
+         modal.style.display = "none";
+ 
+     };*/
 
     // defining an object with all the required data 
     const [formData, setFormData] = useState(
@@ -31,14 +53,19 @@ function CreateClient() {
             secund_lastname: "",
             phone: "",
             address: "",
-            neighborhood: ""
+
         }
     );
+
+    // set loading variable to show spinner 
+    const [loading, setLoading] = useState(false);
 
     // implement useState to create a object that will contain error messages for each input field
     const [errors, setErrors] = useState({});
     // create a state for an array of neighborhoods
     const [neighborhoods, setNeighborhoods] = useState([]);
+    const navigate = useNavigate();
+
     // make request to api neighborhood endpoind
     useEffect(() => {
         // get the array of neighborhooods
@@ -49,6 +76,42 @@ function CreateClient() {
             .catch(error => { console.log(error) });
 
     }, []);
+
+    // make post request to client api endpoint 
+    function postClient(data) {
+        // change value of variable loading to true
+        setLoading(true);
+        axios.post(env.mainUrl + "/clients", data)
+            .then(res => {
+                console.log(res.data);
+                // set a time to set loading variable to false again
+                setTimeout(() => {
+                    setLoading(false);
+                    // close the modal window
+                    // modalClose("modalConfirmCreateClient");
+                    // redirect to client table view 
+                    navigate("/clients")
+                }, 4000);
+
+
+            })
+            .catch(error => {
+                console.error("Posting new client was not possible ! ", error);
+               
+                setTimeout(() => {
+                    // set a time to set "loading" variable to false again
+                    setLoading(false);
+                }, 4000);
+                // make a copy of the error object and add an atribute 
+                // that will hold an other object with api related errors
+                setErrors(prevState => {
+                    return { ...prevState, api: error }
+                })
+
+            }
+            )
+    }
+
 
     // function to handle change event of inputs 
     const handleInput = (event) => { // pass the event generated when input changes as argument
@@ -84,10 +147,10 @@ function CreateClient() {
         if (formData.address === "") {
             foundErros.address = "The address is mandatory";
         };
-
-        if (formData.neighborhood === "") {
-            foundErros.neighborhood = "You must to select a neighborhood";
-        };
+        /*
+                if (formData.neighborhood === "") {
+                    foundErros.neighborhood = "You must to select a neighborhood";
+                };*/
 
 
         if (formData == null) {
@@ -100,6 +163,7 @@ function CreateClient() {
 
     };
 
+
     // function that executes some logic to handle the from data when submit event is triger
     const handleForm = (ev) => {
         // prevent default behaveour of the form 
@@ -110,7 +174,12 @@ function CreateClient() {
 
         if (isValid) {
             console.log(isValid);
-            console.log(formData);
+            console.log("Sending post request to back-end......");
+
+            // call the postClient function to send data to api 
+            postClient(formData);
+            console.log("Post request made successfully......");
+
         } else {
             console.warn("there are some missing data in the form !")
             console.warn(errors);
@@ -122,8 +191,12 @@ function CreateClient() {
         <>
             <BackButton />
             <h3 className="mt-3" >Añadir cliente</h3>
+            {/** show a message when there is an error with the API */}
+            {errors.api?.code && (<div style={{ color: "red" }} ><p>{errors.api?.code}. Error de connección a la API</p>
+            <p>El servidor no esta disponible en este momento. Intente luego nuevamente.</p></div>)}
+
             { /** execute a function to handle the form when submit event is generate */}
-            <form onSubmit={(ev) => { handleForm(ev) }} className="form-group mb-3">
+            <form onSubmit={event => handleForm(event)} className="form-group mb-3">
                 <div className="row">
                     <div className="col-md-6 col-12">
                         <div className="mb-3">
@@ -211,7 +284,7 @@ function CreateClient() {
                                 className="form-select"
                                 id="neighborhood"
                                 name='neighborhood'
-                                value={formData.neighborhood}
+
                                 onChange={(e) => handleInput(e)}>
                                 <option >---</option>
                                 {
@@ -232,14 +305,46 @@ function CreateClient() {
                     </div>
                 </div>
                 <div className="mb-3 text-center">
-                    <button className="btn btn-success mx-1" type="submit" >Añadir</button>
+                    <button
+                        className="btn btn-success mx-1"
+                        type='submit'> {loading ? <Spinner /> : "Añadir"}
+                    </button>
                     <Link className="btn btn-danger mx-1" to="/clients" >Cancelar</Link>
                 </div>
             </form>
 
 
+            {/** modal window to confirm creation of new client */}
+            <div className="modal" id="modalConfirmCreateClient">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-body">
 
 
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                className='btn btn-secundary'
+                                type="button"
+                                onClick={() => {
+                                    // this condition is to prevent making a post 
+                                    // request to the api since it is possible in the 
+                                    // first render of the component
+
+                                    if (formData.first_name !== "") {
+                                        postClient(formData)
+                                    }
+                                }
+                                }
+                            >si</button>
+                            <button
+                                className='btn btn-primary'
+                                type="button"
+                            >NO</button>
+                        </div>
+                    </div>
+                </div>
+            </div >
         </>
 
     );
