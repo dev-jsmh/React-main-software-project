@@ -283,9 +283,7 @@ function CreateClient() {
                             <select
                                 className="form-select"
                                 id="neighborhood"
-                                name='neighborhood'
-
-                                onChange={(e) => handleInput(e)}>
+                                name='neighborhood'>
                                 <option >---</option>
                                 {
                                     // iterate the neighborhood array and return a option element for each neighborhood
